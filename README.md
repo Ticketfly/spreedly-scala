@@ -1,13 +1,8 @@
 # spreedly-scala
-Async Spreedly payment service client written in Scala.  
+Async Spreedly payment service client written in Scala, wrapping all third-party requests in Futures.
 
 Spreedly domain objects are mapped to XML fields using the JAXB implementation in [spreedly-java](https://github.com/rjstanford/spreedly-java).
-The Play framework [recommends JAXB](https://www.playframework.com/documentation/2.4.x/ScalaWS) as an efficient way to serialize XML over the wire.
 
-## Test
-```
-sbt test
-```
 
 ## Usage
 ```scala
@@ -23,17 +18,21 @@ spreedlyClient.purchase("gaToken", "pmToken", 100, "USD").map(response => {
 }
 ```
 
+
+## Test
+```
+sbt test
+```
+
 ## Description
 
 ### Client interface
-*payment-core* exposes `SpreedlyClient` which is the core library for interacting with Spreedly.
+This package exposes `SpreedlyClient` which is the core library for interacting with Spreedly.
 It handles the RESTful communication and marshaling behind the scenes, and provides relevant errors which map to those in the Spreedly docs.
 
 ### XML serialization
-
 The Play framework [recommends JAXB](https://www.playframework.com/documentation/2.4.x/ScalaWS) as an efficient way to serialize XML over the wire.
-The mappings were largely taken from [spreedly-java](https://github.com/rjstanford/spreedly-java) (MIT license), but had to be copied in order to fix several bugs included.
-The payment service can instead just depend on this external package once [my pull request](https://github.com/rjstanford/spreedly-java/pull/1) has been merged and built.
+The mappings were largely taken from [spreedly-java](https://github.com/rjstanford/spreedly-java) (MIT license).
 
 
 ## Terms
@@ -63,3 +62,28 @@ A transaction *credit* is the same as a refund.
 
 #### Void
 Cancel a charge that hasn't yet taken place by issuing a *void*.
+
+
+## License
+The MIT License (MIT)
+
+Copyright (c) 2015-2016 Ticketfly, Inc
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
