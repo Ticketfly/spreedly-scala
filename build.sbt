@@ -6,9 +6,10 @@ organization := "com.ticketfly"
 
 version := "1.0.0"
 
+licenses := Seq("MIT License" -> url("http://www.opensource.org/licenses/mit-license.html"))
+
 parallelExecution in Test := false   // Prevents sbt to execute tests in parallel
 fork in Test := true                 // Forks the JVM during tests to prevent sbt OOM error
-publishArtifact in Test := false
 
 scalacOptions ++= Seq(
   "-feature",
@@ -47,19 +48,13 @@ libraryDependencies ++= Seq(
 // Scalastyle configuration
 scalastyleFailOnError := true
 
-//Scoverage configuration
-ScoverageSbtPlugin.ScoverageKeys.coverageFailOnMinimum := true
-ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages := ".*javascript.*;router;.*BuildInfo;.*Reverse.*"
-ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 95
-
 // Publish configuration
 publishTo := {
-  val tflyBuildRepo = "http://build.ticketfly.com/artifactory/"
+  val nexus = "https://oss.sonatype.org/"
   if (isSnapshot.value)
-    Some("snapshots" at tflyBuildRepo + "libs-snapshot-local")
+    Some("snapshots" at nexus + "content/repositories/snapshots")
   else
-    Some("releases"  at tflyBuildRepo + "libs-release-local")
+    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
-credentials += Credentials(Path.userHome / ".artifactory" / ".credentials")
 publishMavenStyle := true
-
+publishArtifact in Test := false

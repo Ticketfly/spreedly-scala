@@ -1,9 +1,15 @@
+sudo: false
 language: scala
-script:
-  - sbt compile test:compile
-  - sbt test
+script: "sbt clean coverage test"
+after_script:
+    - "sbt coveralls"
 scala:
-   - 2.11.6
-before_script:
-  - mkdir $TRAVIS_BUILD_DIR/tmp
-  - export SBT_OPTS="-Djava.io.tmpdir=$TRAVIS_BUILD_DIR/tmp"
+    - "2.11.7"
+jdk:
+    - oraclejdk8
+    - openjdk8
+env:
+    - SBT_OPTS="-XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:PermSize=256M -XX:MaxPermSize=512M"
+branches:
+  only:
+    - master

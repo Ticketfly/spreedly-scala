@@ -1,10 +1,18 @@
-# spreedly-scala
+spreedly-scala [![Build Status](https://travis-ci.org/Ticketfly/spreedly-scala.png)](https://travis-ci.org/Ticketfly/spreedly-scala) [![Coverage Status](https://img.shields.io/coveralls/Ticketfly/spreedly-scala.svg)](https://coveralls.io/r/Ticketfly/spreedly-scala?branch=master) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ticketfly/spreedly-client_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ticketfly/spreedly-client_2.11)
+==========
+
+
 Async Spreedly payment service client written in Scala, wrapping all third-party requests in Futures.
 
 Spreedly domain objects are mapped to XML fields using the JAXB implementation in [spreedly-java](https://github.com/rjstanford/spreedly-java).
 
 
 ## Usage
+Include as a dependency
+```scala
+libraryDependencies += "com.ticketfly.spreedly" %% "spreedly-client" % "1.0.0"
+```
+
 ```scala
 val config = SpreedlyConfiguration("environmentToken", "accessSecret")
 val spreedlyClient = new SpreedlyClient(config)
