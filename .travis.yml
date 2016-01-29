@@ -1,8 +1,7 @@
-sudo: false
 language: scala
 script: "sbt clean coverage test"
 after_script:
-    - "sbt coveralls"
+    - sbt coveralls > /dev/null 2>&1
 scala:
     - "2.11.7"
 jdk:
