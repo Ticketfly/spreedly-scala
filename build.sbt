@@ -6,8 +6,6 @@ organization := "com.ticketfly"
 
 version := "1.0.0"
 
-licenses := Seq("MIT License" -> url("http://www.opensource.org/licenses/mit-license.html"))
-
 parallelExecution in Test := false   // Prevents sbt to execute tests in parallel
 fork in Test := true                 // Forks the JVM during tests to prevent sbt OOM error
 
@@ -56,5 +54,23 @@ publishTo := {
   else
     Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
+
 publishMavenStyle := true
+
 publishArtifact in Test := false
+
+pomExtra := (
+	<developers>
+		<developer>
+			<id>alexanderscott</id>
+			<name>Alex Ehrnschwender</name>
+			<url>https://github.com/alexanderscott</url>
+		</developer>
+	</developers>
+)
+
+scmInfo := Some(ScmInfo(url("https://github.com/Ticketfly/spreedly-scala"), "scm:git:git@github.com:Ticketfly/spreedly-scala.git"))
+
+licenses := Seq("MIT License" -> url("http://www.opensource.org/licenses/mit-license.html"))
+
+homepage := Some(url("https://github.com/Ticketfly/spreedly-scala"))
