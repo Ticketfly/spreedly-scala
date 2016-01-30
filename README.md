@@ -2,18 +2,23 @@ spreedly-scala [![Build Status](https://travis-ci.org/Ticketfly/spreedly-scala.p
 ==========
 
 
-Async Spreedly payment service client written in Scala, wrapping all third-party requests in Futures.
-
-Spreedly domain objects are mapped to XML fields using the JAXB implementation in [spreedly-java](https://github.com/rjstanford/spreedly-java).
+Async Spreedly payment service client library.  Wraps external requests in Futures and parses XML into domain transfer objects.
 
 
 ## Usage
-Include as a dependency
+Include as a dependency in `build.sbt`
 ```scala
-libraryDependencies += "com.ticketfly.spreedly" %% "spreedly-client" % "1.0.0"
+libraryDependencies += "com.ticketfly" %% "spreedly-client" % "1.0.0"
 ```
 
+
+Exposes `SpreedlyClient` which is the core interaction class for performing REST actions against payment gateways.  It marshals success & error responses into Spreedly DTOs.
+
+[JAXB](https://www.playframework.com/documentation/2.4.x/ScalaWS) is recommended by Typesafe as an efficient way to serialize XML over the wire.  The mappings are largely from [spreedly-java](https://github.com/rjstanford/spreedly-java) (MIT license).
+
 ```scala
+import com.ticketfly.spreedly._
+
 val config = SpreedlyConfiguration("environmentToken", "accessSecret")
 val spreedlyClient = new SpreedlyClient(config)
 
@@ -22,28 +27,21 @@ spreedlyClient.purchase("gaToken", "pmToken", 100, "USD").map(response => {
     if (response.succeeded) log.info(s"Successfully completed purchase with token ${response.getToken}")
     else log.error(s"Could not complete purchase, response errors: ${response.errors.toString}")
 }) recover {
-    case e: SpreedlyException => log.error(s"Error contacting Spreedly service: ${e.getMessage}")
+    case e: SpreedlyException => {
+      log.error(s"Error contacting Spreedly service: ${e.getMessage}")
+      throw e
+    }
 }
 ```
 
 
 ## Test
 ```
-sbt test
+sbt clean coverage test
 ```
 
-## Description
 
-### Client interface
-This package exposes `SpreedlyClient` which is the core library for interacting with Spreedly.
-It handles the RESTful communication and marshaling behind the scenes, and provides relevant errors which map to those in the Spreedly docs.
-
-### XML serialization
-The Play framework [recommends JAXB](https://www.playframework.com/documentation/2.4.x/ScalaWS) as an efficient way to serialize XML over the wire.
-The mappings were largely taken from [spreedly-java](https://github.com/rjstanford/spreedly-java) (MIT license).
-
-
-## Terms
+### Terminology
 #### Authorize & Capture
 An *authorize* call will contact the gateway to verify whether a transaction can take place and funds can be transferred.
 If able to proceed, a *capture* is then required to perform the fund transfer.
