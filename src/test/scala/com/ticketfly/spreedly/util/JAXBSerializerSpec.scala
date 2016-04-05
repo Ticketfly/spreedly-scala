@@ -43,7 +43,7 @@ class JAXBSerializerSpec extends WordSpec with Mockito {
     }
 
     "deserialize from xml into domain object" in {
-      val group: ThingGroup = xmlSerializer.deserialize(thingXmlString.toString, classOf[ThingGroup])
+      val group: ThingGroup = xmlSerializer.deserialize[ThingGroup](thingXmlString.toString)
 
       val groupThings = group.things.asScala.toSeq
       assert(groupThings.nonEmpty)

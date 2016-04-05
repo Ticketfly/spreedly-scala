@@ -66,11 +66,11 @@ class SpreedlyClient(config: SpreedlyConfiguration)(implicit system: ActorSystem
   protected val rest = new SpreedlyRestDispatcher(config)
 
   private def gatewayPost(request: SpreedlyTransactionRequest, url: String): Future[SpreedlyTransactionResponse] = {
-    rest.post(s"gateways/${request.getGatewayAccountToken}/$url", classOf[SpreedlyTransactionResponse], Some(request))
+    rest.post[SpreedlyTransactionResponse](s"gateways/${request.getGatewayAccountToken}/$url", Some(request))
   }
 
   private def transactionPost(request: SpreedlyTransactionRequest, url: String): Future[SpreedlyTransactionResponse] = {
-    rest.post(s"transactions/${request.getReferenceTransactionToken}/$url", classOf[SpreedlyTransactionResponse], Some(request))
+    rest.post[SpreedlyTransactionResponse](s"transactions/${request.getReferenceTransactionToken}/$url", Some(request))
   }
 
   private def paramsToMap(sinceToken: Option[String] = None, desc: Boolean = false, retained: Boolean = false): Map[String, String] = {
@@ -92,7 +92,7 @@ class SpreedlyClient(config: SpreedlyConfiguration)(implicit system: ActorSystem
   }
 
   def listGatewayProviders: Future[Seq[SpreedlyGatewayProvider]] = {
-    rest.options[SpreedlyGatewayProviderResponse]("gateways", classOf[SpreedlyGatewayProviderResponse])
+    rest.options[SpreedlyGatewayProviderResponse]("gateways")
       .map(_.gateways.asScala)
   }
 
@@ -107,22 +107,21 @@ class SpreedlyClient(config: SpreedlyConfiguration)(implicit system: ActorSystem
   }
 
   def createGatewayAccount(account: SpreedlyGatewayAccount): Future[SpreedlyGatewayAccount] = {
-    rest.post("gateways", classOf[SpreedlyGatewayAccount], Some(buildGatewayAccountUpdate(account)))
+    rest.post[SpreedlyGatewayAccount]("gateways", Some(buildGatewayAccountUpdate(account)))
   }
 
   def getGatewayAccount(token: String): Future[SpreedlyGatewayAccount] = {
-    rest.get(s"gateways/$token", classOf[SpreedlyGatewayAccount])
+    rest.get[SpreedlyGatewayAccount](s"gateways/$token")
   }
 
   def listGatewayAccounts(sinceToken: Option[String] = None, desc: Boolean = false, retained: Boolean = false): Future[Seq[SpreedlyGatewayAccount]] = {
-    rest.get[SpreedlyGatewayAccountResponse]("gateways", classOf[SpreedlyGatewayAccountResponse], paramsToMap(sinceToken, desc))
+    rest.get[SpreedlyGatewayAccountResponse]("gateways", paramsToMap(sinceToken, desc))
       .map(_.gateways.asScala)
   }
 
   def listGatewayTransactions(gatewayToken: String, sinceToken: Option[String] = None, desc: Boolean = false): Future[Seq[SpreedlyTransactionResponse]] = {
     rest.get[SpreedlyTransactionListResponse](
       s"gateways/$gatewayToken/transactions",
-      classOf[SpreedlyTransactionListResponse],
       paramsToMap(sinceToken, desc)
     ).map(_.transactions.asScala)
   }
@@ -156,18 +155,18 @@ class SpreedlyClient(config: SpreedlyConfiguration)(implicit system: ActorSystem
   }
 
   def redactGatewayAccount(account: SpreedlyGatewayAccount): Future[SpreedlyTransactionResponse] = {
-    rest.put(s"gateways/${account.getToken}/redact", classOf[SpreedlyTransactionResponse])
+    rest.put[SpreedlyTransactionResponse](s"gateways/${account.getToken}/redact")
   }
 
   def retainGatewayAccount(account: SpreedlyGatewayAccount): Future[SpreedlyTransactionResponse] = {
-    rest.put(s"gateways/${account.getToken}/retain", classOf[SpreedlyTransactionResponse])
+    rest.put[SpreedlyTransactionResponse](s"gateways/${account.getToken}/retain")
   }
 
   /**
    * Update credentials for a gateway account
    */
   def updateGatewayAccount(account: SpreedlyGatewayAccount): Future[SpreedlyGatewayAccount] = {
-    rest.put(s"gateways/${account.getToken}", classOf[SpreedlyGatewayAccount], Some(buildGatewayAccountUpdate(account)))
+    rest.put[SpreedlyGatewayAccount](s"gateways/${account.getToken}", Some(buildGatewayAccountUpdate(account)))
   }
 
   def verifyGatewayAccount(request: SpreedlyTransactionRequest): Future[SpreedlyTransactionResponse] = {
@@ -185,24 +184,23 @@ class SpreedlyClient(config: SpreedlyConfiguration)(implicit system: ActorSystem
     createRequest.creditCard = creditCard
     createRequest.data = creditCard.data
     createRequest.email = creditCard.email
-    rest.post[SpreedlyTransactionResponse](s"payment_methods", classOf[SpreedlyTransactionResponse], Some(createRequest))
+    rest.post[SpreedlyTransactionResponse](s"payment_methods", Some(createRequest))
   }
 
   def getPaymentMethod(paymentMethodToken: String): Future[SpreedlyPaymentMethod] = {
-    rest.get(s"payment_methods/$paymentMethodToken", classOf[SpreedlyPaymentMethod])
+    rest.get[SpreedlyPaymentMethod](s"payment_methods/$paymentMethodToken")
   }
 
   def listPaymentMethods(sinceToken: Option[String] = None, desc: Boolean = false, retained: Boolean = false): Future[Seq[SpreedlyPaymentMethod]] = {
-    rest.get("payment_methods", classOf[SpreedlyPaymentMethodListResponse], paramsToMap(sinceToken, desc, retained))
+    rest.get[SpreedlyPaymentMethodListResponse]("payment_methods", paramsToMap(sinceToken, desc, retained))
       .map(_.paymentMethods.asScala)
   }
 
   def listPaymentMethodTransactions(paymentMethodToken: String,
                                     sinceToken: Option[String] = None,
                                     desc: Boolean = false): Future[Seq[SpreedlyTransactionResponse]] = {
-    rest.get(
+    rest.get[SpreedlyTransactionListResponse](
       s"payment_methods/$paymentMethodToken/transactions",
-      classOf[SpreedlyTransactionListResponse],
       paramsToMap(sinceToken, desc)
     ).map(_.transactions.asScala)
   }
@@ -214,7 +212,7 @@ class SpreedlyClient(config: SpreedlyConfiguration)(implicit system: ActorSystem
       Some(redactRequestContent)
     } else None
 
-    rest.put(s"payment_methods/$paymentMethodToken/redact", classOf[SpreedlyTransactionResponse], redactRequest)
+    rest.put[SpreedlyTransactionResponse](s"payment_methods/$paymentMethodToken/redact", redactRequest)
   }
 
   def recachePaymentMethod(paymentMethodToken: String, verificationValue: String): Future[SpreedlyTransactionResponse] = {
@@ -225,19 +223,18 @@ class SpreedlyClient(config: SpreedlyConfiguration)(implicit system: ActorSystem
   }
 
   def recachePaymentMethod(paymentMethod: SpreedlyPaymentMethod): Future[SpreedlyTransactionResponse] = {
-    rest.post(
+    rest.post[SpreedlyTransactionResponse](
       s"payment_methods/${paymentMethod.getToken}/recache",
-      classOf[SpreedlyTransactionResponse],
       Some(paymentMethod)
     )
   }
 
   def retainPaymentMethod(paymentMethodToken: String): Future[SpreedlyTransactionResponse] = {
-    rest.put(s"payment_methods/$paymentMethodToken/retain", classOf[SpreedlyTransactionResponse])
+    rest.put[SpreedlyTransactionResponse](s"payment_methods/$paymentMethodToken/retain")
   }
 
   def updatePaymentMethod(paymentMethod: SpreedlyPaymentMethod): Future[SpreedlyPaymentMethod] = {
-    rest.put(s"payment_methods/${paymentMethod.getToken}", classOf[SpreedlyPaymentMethod], Some(paymentMethod))
+    rest.put[SpreedlyPaymentMethod](s"payment_methods/${paymentMethod.getToken}", Some(paymentMethod))
   }
 
 
@@ -268,17 +265,16 @@ class SpreedlyClient(config: SpreedlyConfiguration)(implicit system: ActorSystem
   }
 
   def getTransaction(token: String): Future[SpreedlyTransactionResponse] = {
-    rest.get(s"transactions/$token", classOf[SpreedlyTransactionResponse])
+    rest.get[SpreedlyTransactionResponse](s"transactions/$token")
   }
 
   def getTranscript(token: String): Future[String] = {
-    rest.get(s"transactions/$token/transcript", classOf[String])
+    rest.get[String](s"transactions/$token/transcript")
   }
 
   def listAllTransactions(sinceToken: Option[String] = None, desc: Boolean = false): Future[Seq[SpreedlyTransactionResponse]] = {
     rest.get[SpreedlyTransactionListResponse](
       "transactions",
-      classOf[SpreedlyTransactionListResponse],
       paramsToMap(sinceToken, desc)
     ).map(_.transactions.asScala)
   }

@@ -4,7 +4,7 @@ scalaVersion := "2.11.7"
 
 organization := "com.ticketfly"
 
-version := "1.0.0"
+version := "1.1.0"
 
 parallelExecution in Test := false   // Prevents sbt to execute tests in parallel
 fork in Test := true                 // Forks the JVM during tests to prevent sbt OOM error
@@ -17,7 +17,6 @@ scalacOptions ++= Seq(
   "-Xfatal-warnings",
   "-Xlint",
   "-Yno-adapted-args",
-  "-Ywarn-dead-code",
   "-Xfuture"
 )
 

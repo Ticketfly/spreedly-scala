@@ -2,6 +2,7 @@ package com.ticketfly.spreedly
 
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.ticketfly.spreedly.fixtures.TestCredentials
@@ -10,8 +11,10 @@ import com.typesafe.config.ConfigFactory
 import org.scalatest._
 import org.specs2.mock.Mockito
 import spray.http._
+
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.reflect.ClassTag
 
 class SpreedlyRestDispatcherSpec extends TestKit(ActorSystem("SpreedlyRestDispatcherSpec", ConfigFactory.load()))
   with WordSpecLike with BeforeAndAfter with BeforeAndAfterAll with Mockito {
@@ -31,14 +34,14 @@ class SpreedlyRestDispatcherSpec extends TestKit(ActorSystem("SpreedlyRestDispat
    */
   val mockSerializer = mock[SpreedlyXmlSerializer]
   mockSerializer.serialize(TestRequest) returns "<test>request</test>"
-  mockSerializer.deserialize("<test>response</test>", classOf[TestResponse]) returns TestResponse("response")
+  mockSerializer.deserialize[TestResponse]("<test>response</test>") returns TestResponse("response")
 
   case object TestRequest
   case class TestResponse(text: String)
 
   class MockDispatcher extends SpreedlyRestDispatcher(testConfig) {
     override protected val spreedlySerializer = mockSerializer
-    override protected def execute[T <: AnyRef](httpRequest: BasicHttpRequest, mappedResponseType: Class[T]): Future[T] = {
+    override protected def execute[T <: AnyRef : ClassTag](httpRequest: BasicHttpRequest): Future[T] = {
       Future.successful(TestResponse("response").asInstanceOf[T])
     }
 
@@ -55,13 +58,12 @@ class SpreedlyRestDispatcherSpec extends TestKit(ActorSystem("SpreedlyRestDispat
 
   class MockExplodingDispatcher extends SpreedlyRestDispatcher(testConfig) {
     override protected val spreedlySerializer = mockSerializer
-    override def get[T <: AnyRef](url: String,
-                                  responseType: Class[T],
+    override def get[T <: AnyRef : ClassTag](url: String,
                                   queryParams: Map[String, String] = Map.empty[String, String]): Future[T] = {
 
       val mockHttpRequest = mock[BasicHttpRequest]
       mockHttpRequest.execute(true) returns Future { throw new IOException("boom!") }
-      execute(mockHttpRequest, responseType)
+      execute(mockHttpRequest)
     }
   }
 
@@ -89,32 +91,32 @@ class SpreedlyRestDispatcherSpec extends TestKit(ActorSystem("SpreedlyRestDispat
     }
 
     "execute a GET request" in {
-      val result = Await.result(mockDispatcher.get("", classOf[TestResponse], Map("testKey" -> "testVal")), timeout)
+      val result = Await.result(mockDispatcher.get[TestResponse]("", Map("testKey" -> "testVal")), timeout)
       assert(result.isInstanceOf[TestResponse])
       assert(result.text == "response")
     }
 
     "execute a POST request" in {
-      val result = Await.result(mockDispatcher.post("", classOf[TestResponse]), timeout)
+      val result = Await.result(mockDispatcher.post[TestResponse](""), timeout)
       assert(result.isInstanceOf[TestResponse])
       assert(result.text == "response")
     }
 
     "execute a PUT request" in {
-      val result = Await.result(mockDispatcher.put("", classOf[TestResponse]), timeout)
+      val result = Await.result(mockDispatcher.put[TestResponse](""), timeout)
       assert(result.isInstanceOf[TestResponse])
       assert(result.text == "response")
     }
 
     "execute a DELETE request" in {
-      val result = Await.result(mockDispatcher.delete("", classOf[TestResponse]), timeout)
+      val result = Await.result(mockDispatcher.delete[TestResponse](""), timeout)
       assert(result.isInstanceOf[TestResponse])
       assert(result.text == "response")
     }
 
     "wrap IO exceptions into SpreedlyExceptions" in {
       try {
-        Await.result(mockExplodingDispatcher.get("", classOf[TestResponse]), timeout)
+        Await.result(mockExplodingDispatcher.get[TestResponse](""), timeout)
       } catch {
         case SpreedlyException(e, code, msg) => assert(true)
       }
