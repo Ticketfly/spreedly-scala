@@ -3,10 +3,14 @@ package com.ticketfly.spreedly.util
 import java.io.{ByteArrayInputStream, StringWriter}
 import javax.xml.bind.{JAXBContext, JAXBException, Marshaller, Unmarshaller}
 
+import scala.reflect.ClassTag
+
 class JAXBSerializer extends BasicSerializer {
 
   @throws[JAXBException]
-  def deserialize[T <: AnyRef](xml: String, responseType: Class[T]): T = {
+  def deserialize[T <: AnyRef : ClassTag](xml: String): T = {
+
+    val responseType = implicitly[ClassTag[T]].runtimeClass
     val context: JAXBContext = JAXBContext.newInstance(responseType)
     val unmarshaller: Unmarshaller = context.createUnmarshaller()
     val inputStream: ByteArrayInputStream = new ByteArrayInputStream(xml.getBytes)

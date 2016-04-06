@@ -2,12 +2,15 @@ package com.ticketfly.spreedly
 
 import java.io.IOException
 import java.net.URLEncoder
+
 import akka.actor.ActorSystem
 import akka.util.Timeout
 import com.ticketfly.spreedly.util.{BasicHttpRequest, RestDispatcher}
 import spray.http._
+
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.reflect.ClassTag
 
 class SpreedlyRestDispatcher(config: SpreedlyConfiguration)
                             (implicit system: ActorSystem) extends RestDispatcher {
@@ -58,39 +61,37 @@ class SpreedlyRestDispatcher(config: SpreedlyConfiguration)
   }
 
 
-  protected def execute[T <: AnyRef](httpRequest: BasicHttpRequest, mappedResponseType: Class[T]): Future[T] = {
+  protected def execute[T <: AnyRef : ClassTag](httpRequest: BasicHttpRequest): Future[T] = {
     httpRequest.execute(config.ssl).map(response => {
-      spreedlySerializer.deserialize[T](response.entity.asString, mappedResponseType)
+      spreedlySerializer.deserialize(response.entity.asString)
     }) recover {
       case e: SpreedlyException => throw e
       case e: IOException => throw new SpreedlyException(e)
     }
   }
 
-  def get[T <: AnyRef](url: String, responseType: Class[T], queryParams: Map[String, String] = Map.empty[String, String]): Future[T] = {
-    execute(buildHttpRequest(url, HttpMethods.GET, None, queryParams), responseType)
+  def get[T <: AnyRef : ClassTag](url: String, queryParams: Map[String, String] = Map.empty[String, String]): Future[T] = {
+    execute(buildHttpRequest(url, HttpMethods.GET, None, queryParams))
   }
 
-  def options[T <: AnyRef](url: String, responseType: Class[T], queryParams: Map[String, String] = Map.empty[String, String]): Future[T] = {
-    execute(buildHttpRequest(url, HttpMethods.OPTIONS, None, queryParams), responseType)
+  def options[T <: AnyRef : ClassTag](url: String, queryParams: Map[String, String] = Map.empty[String, String]): Future[T] = {
+    execute(buildHttpRequest(url, HttpMethods.OPTIONS, None, queryParams))
   }
 
-  def put[T <: AnyRef](url: String,
-                       responseType: Class[T],
+  def put[T <: AnyRef : ClassTag](url: String,
                        content: Option[AnyRef] = None,
                        queryParams: Map[String, String] = Map.empty[String, String]): Future[T] = {
-    execute(buildHttpRequest(url, HttpMethods.PUT, content, queryParams), responseType)
+    execute(buildHttpRequest(url, HttpMethods.PUT, content, queryParams))
   }
 
-  def post[T <: AnyRef](url: String,
-                        responseType: Class[T],
+  def post[T <: AnyRef : ClassTag](url: String,
                         content: Option[AnyRef] = None,
                         queryParams: Map[String, String] = Map.empty[String, String]): Future[T] = {
-    execute(buildHttpRequest(url, HttpMethods.POST, content, queryParams), responseType)
+    execute(buildHttpRequest(url, HttpMethods.POST, content, queryParams))
   }
 
-  def delete[T <: AnyRef](url: String, responseType: Class[T], queryParams: Map[String, String] = Map.empty[String, String]): Future[T] = {
-    execute(buildHttpRequest(url, HttpMethods.DELETE, None, queryParams), responseType)
+  def delete[T <: AnyRef : ClassTag](url: String, queryParams: Map[String, String] = Map.empty[String, String]): Future[T] = {
+    execute(buildHttpRequest(url, HttpMethods.DELETE, None, queryParams))
   }
 
 }

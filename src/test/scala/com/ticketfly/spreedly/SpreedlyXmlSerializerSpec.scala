@@ -49,7 +49,7 @@ class SpreedlyXmlSerializerSpec extends WordSpec with Mockito {
 
   "SpreedlyXmlSerializer" must {
     "deserialize from xml into domain object" in {
-      testGatewayAccount = xmlSerializer.deserialize(testGatewayAccountXml.toString(), classOf[SpreedlyGatewayAccount])
+      testGatewayAccount = xmlSerializer.deserialize[SpreedlyGatewayAccount](testGatewayAccountXml.toString())
       assert(testGatewayAccount.getToken == "4dFb93AiRDEJ18MS9xDGMyu22uO")
       assert(testGatewayAccount.getName == "Test")
       assert(testGatewayAccount.getGatewayType == "test")
@@ -87,7 +87,7 @@ class SpreedlyXmlSerializerSpec extends WordSpec with Mockito {
     "deserialize error hashes" in {
       val hashXml = <hash><status>status</status><error>error</error></hash>
       try {
-        xmlSerializer.deserialize(hashXml.toString(), classOf[SpreedlyGatewayAccount])
+        xmlSerializer.deserialize[SpreedlyGatewayAccount](hashXml.toString())
       } catch {
         case SpreedlyException(e, code, msg) => {
           assert(code == "status")
@@ -99,7 +99,7 @@ class SpreedlyXmlSerializerSpec extends WordSpec with Mockito {
     "not overflow the stack when a known error is returned" in {
       val errorXml = <test></test>
       try {
-        xmlSerializer.deserialize(errorXml.toString(), classOf[SpreedlyErrorHash])
+        xmlSerializer.deserialize[SpreedlyErrorHash](errorXml.toString())
       } catch {
         case SpreedlyException(e, code, msg) => assert(true)
       }
@@ -108,7 +108,7 @@ class SpreedlyXmlSerializerSpec extends WordSpec with Mockito {
     "not overflow the stack when an unknown message is returned" in {
       val unknownXml = <test></test>
       try {
-        xmlSerializer.deserialize(unknownXml.toString(), classOf[SpreedlyGatewayAccount])
+        xmlSerializer.deserialize[SpreedlyGatewayAccount](unknownXml.toString())
       } catch {
         case SpreedlyException(e, code, msg) => assert(true)
       }
