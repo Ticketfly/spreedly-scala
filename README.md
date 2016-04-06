@@ -8,7 +8,7 @@ Async Spreedly payment service client library.  Wraps external requests in Futur
 ## Usage
 Include as a dependency in `build.sbt`
 ```scala
-libraryDependencies += "com.ticketfly" %% "spreedly-client" % "1.0.0"
+libraryDependencies += "com.ticketfly" %% "spreedly-client" % "1.1.0"
 ```
 
 
