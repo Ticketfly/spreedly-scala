@@ -29,7 +29,7 @@ class BasicHttpRequest(url: String, method: HttpMethod = HttpMethods.GET)
     str.append(s"Http Request: $method $url")
     if (headers.nonEmpty) {
       str.append("\tHeaders:")
-      headers.foreach((h) => str.append(s"  - ${h.name}: ${h.value}"))
+      headers.filter((h) => h.name != "Authorization").foreach((h) => str.append(s"  - ${h.name}: ${h.value}"))
     }
 
     if (body.trim.nonEmpty) {
